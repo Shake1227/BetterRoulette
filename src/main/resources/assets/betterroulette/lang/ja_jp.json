@@ -1,0 +1,21 @@
+{
+  "item.betterroulette.roulette": "ルーレット",
+  "creativetab.betterroulette_tab": "BetterRoulette",
+  "gui.betterroulette.config.title": "ルーレット設定",
+  "gui.betterroulette.config.name": "名前",
+  "gui.betterroulette.config.cost": "コスト",
+  "gui.betterroulette.config.use_vault": "Vaultを利用",
+  "gui.betterroulette.config.save": "保存して閉じる",
+  "gui.betterroulette.config.add": "+",
+  "gui.betterroulette.config.remove": "-",
+  "gui.betterroulette.config.entries": "景品リスト",
+
+  "chat.betterroulette.play.info": "ルーレット: %s",
+  "chat.betterroulette.play.cost_vault": "コスト: %d円",
+  "chat.betterroulette.play.click": "&a&l[クリックしてプレイ]",
+  "chat.betterroulette.play.no_cost": "&cプレイするためのコストが足りません。",
+  "chat.betterroulette.play.no_entries": "&cこのルーレットには景品が設定されていません。",
+  "chat.betterroulette.play.already_spinning": "&cこのルーレットは既に回転中です！",
+  "chat.betterroulette.result": "&a▶ &fルーレット結果: &6&l%s",
+  "chat.betterroulette.jackpot": "&6&l★ 大当たり! ★"
+}

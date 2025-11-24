@@ -1,0 +1,21 @@
+{
+  "item.betterroulette.roulette": "Roulette",
+  "creativetab.betterroulette_tab": "BetterRoulette",
+  "gui.betterroulette.config.title": "Roulette Settings",
+  "gui.betterroulette.config.name": "Name",
+  "gui.betterroulette.config.cost": "Cost",
+  "gui.betterroulette.config.use_vault": "Use Vault",
+  "gui.betterroulette.config.save": "Save & Close",
+  "gui.betterroulette.config.add": "+",
+  "gui.betterroulette.config.remove": "-",
+  "gui.betterroulette.config.entries": "Entries",
+
+  "chat.betterroulette.play.info": "Roulette: %s",
+  "chat.betterroulette.play.cost_vault": "Cost: $%d",
+  "chat.betterroulette.play.click": "&a&l[CLICK TO PLAY]",
+  "chat.betterroulette.play.no_cost": "&cYou don't have enough to play.",
+  "chat.betterroulette.play.no_entries": "&cThis roulette has no entries configured.",
+  "chat.betterroulette.play.already_spinning": "&cThis roulette is already spinning!",
+  "chat.betterroulette.result": "&a▶ &fRoulette Result: &6&l%s",
+  "chat.betterroulette.jackpot": "&6&l★ JACKPOT! ★"
+}
