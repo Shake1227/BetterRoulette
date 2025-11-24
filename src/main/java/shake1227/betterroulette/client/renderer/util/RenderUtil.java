@@ -2,35 +2,60 @@ package shake1227.betterroulette.client.renderer.util;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 
 public class RenderUtil {
 
-    public static void drawDisk(PoseStack poseStack, VertexConsumer buffer, float radius, int segments, float r, float g, float b, float a, int packedLight) {
-        drawArc(poseStack, buffer, 0, 360, radius, segments, r, g, b, a, packedLight);
+    // 円盤描画 (中央のハブ用)
+    public static void drawDisk(PoseStack poseStack, VertexConsumer buffer, float radius, int segments, int color, int packedLight, int packedOverlay, float zOffset) {
+        Matrix4f matrix = poseStack.last().pose();
+        float y = zOffset;
+
+        float r = ((color >> 16) & 0xFF) / 255.0f;
+        float g = ((color >> 8) & 0xFF) / 255.0f;
+        float b = (color & 0xFF) / 255.0f;
+        float a = 1.0f;
+
+        float angleStep = 360.0f / segments;
+
+        for (int i = 0; i < segments; i++) {
+            float startDeg = i * angleStep;
+            float endDeg = (i + 1) * angleStep;
+
+            float rad1 = (float) Math.toRadians(startDeg);
+            float rad2 = (float) Math.toRadians(endDeg);
+
+            float x1 = radius * Mth.cos(rad1);
+            float z1 = radius * Mth.sin(rad1);
+            float x2 = radius * Mth.cos(rad2);
+            float z2 = radius * Mth.sin(rad2);
+
+            // UVは(0.5, 0.5)で白テクスチャを使用
+            buffer.vertex(matrix, 0, y, 0).color(r, g, b, a).uv(0.5f, 0.5f).overlayCoords(packedOverlay).uv2(packedLight).normal(0, 1, 0).endVertex();
+            buffer.vertex(matrix, x1, y, z1).color(r, g, b, a).uv(0.5f, 0.5f).overlayCoords(packedOverlay).uv2(packedLight).normal(0, 1, 0).endVertex();
+            buffer.vertex(matrix, x2, y, z2).color(r, g, b, a).uv(0.5f, 0.5f).overlayCoords(packedOverlay).uv2(packedLight).normal(0, 1, 0).endVertex();
+        }
     }
 
-    public static void drawArc(PoseStack poseStack, VertexConsumer buffer, float startAngle, float endAngle, float radius, int segments, float r, float g, float b, float a, int packedLight) {
+    // 三角形描画（ポインター用）
+    public static void drawTriangle(PoseStack poseStack, VertexConsumer buffer, float x, float z, float size, int color, int packedLight, int packedOverlay, float zOffset) {
         Matrix4f matrix = poseStack.last().pose();
-        float y = 0.01f;
+        float y = zOffset;
 
-        float totalAngle = endAngle - startAngle;
-        int numSegments = Math.max(1, (int) (segments * (totalAngle / 360.0f)));
-        float angleStep = (float) Math.toRadians(totalAngle / numSegments);
-        float startAngleRad = (float) Math.toRadians(startAngle);
+        float r = ((color >> 16) & 0xFF) / 255.0f;
+        float g = ((color >> 8) & 0xFF) / 255.0f;
+        float b = (color & 0xFF) / 255.0f;
+        float a = 1.0f;
 
-        for (int i = 0; i < numSegments; i++) {
-            float angle1 = startAngleRad + i * angleStep;
-            float angle2 = startAngleRad + (i + 1) * angleStep;
+        float halfSize = size / 2.0f;
+        // 逆三角形 (▼)
+        float x1 = x - halfSize; float z1 = z - size; // 左上
+        float x2 = x + halfSize; float z2 = z - size; // 右上
+        float x3 = x;            float z3 = z;        // 下（先端）
 
-            float x1 = radius * (float) Math.cos(angle1);
-            float z1 = radius * (float) Math.sin(angle1);
-            float x2 = radius * (float) Math.cos(angle2);
-            float z2 = radius * (float) Math.sin(angle2);
-
-            buffer.vertex(matrix, x1, y, z1).color(r, g, b, a).uv(0, 0).uv2(packedLight).normal(0, 1, 0).endVertex();
-            buffer.vertex(matrix, x2, y, z2).color(r, g, b, a).uv(0, 0).uv2(packedLight).normal(0, 1, 0).endVertex();
-            buffer.vertex(matrix, 0, y, 0).color(r, g, b, a).uv(0, 0).uv2(packedLight).normal(0, 1, 0).endVertex();
-        }
+        buffer.vertex(matrix, x1, y, z1).color(r, g, b, a).uv(0.5f, 0.5f).overlayCoords(packedOverlay).uv2(packedLight).normal(0, 1, 0).endVertex();
+        buffer.vertex(matrix, x2, y, z2).color(r, g, b, a).uv(0.5f, 0.5f).overlayCoords(packedOverlay).uv2(packedLight).normal(0, 1, 0).endVertex();
+        buffer.vertex(matrix, x3, y, z3).color(r, g, b, a).uv(0.5f, 0.5f).overlayCoords(packedOverlay).uv2(packedLight).normal(0, 1, 0).endVertex();
     }
 }

@@ -2,24 +2,25 @@ package shake1227.betterroulette.client.screen.widget;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.ContainerObjectSelectionList;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.network.chat.Component;
 import shake1227.betterroulette.client.screen.RouletteConfigScreen;
 
-import java.util.Collections;
 import java.util.List;
 
-public class CommandEntryList extends ContainerObjectSelectionList<CommandEntryList.Entry> {
+public class CommandEntryList extends ObjectSelectionList<CommandEntryList.Entry> {
     private final RouletteConfigScreen parent;
     public final List<String> commands;
+    private boolean visible = true;
 
     public CommandEntryList(RouletteConfigScreen parent, List<String> commands, Minecraft mc, int width, int height, int y, int itemHeight) {
-        super(mc, width, height, y, itemHeight);
+        super(mc, width, parent.height, y, y + height, itemHeight);
         this.parent = parent;
         this.commands = commands;
         this.updateEntries();
         this.centerListVertically = false;
+        this.setRenderBackground(false);
+        this.setRenderTopAndBottom(false);
     }
 
     public void updateEntries() {
@@ -27,9 +28,20 @@ public class CommandEntryList extends ContainerObjectSelectionList<CommandEntryL
         this.commands.forEach(cmd -> this.addEntry(new Entry(cmd)));
     }
 
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        if (this.visible) {
+            super.render(guiGraphics, mouseX, mouseY, partialTick);
+        }
+    }
+
     @Override
     public int getScrollbarPosition() {
-        return this.getX0() + this.width;
+        return this.x0 + this.width;
     }
 
     @Override
@@ -37,7 +49,7 @@ public class CommandEntryList extends ContainerObjectSelectionList<CommandEntryL
         return this.width;
     }
 
-    public class Entry extends ContainerObjectSelectionList.Entry<CommandEntryList.Entry> {
+    public class Entry extends ObjectSelectionList.Entry<CommandEntryList.Entry> {
         private final String command;
 
         public Entry(String command) {
@@ -46,7 +58,7 @@ public class CommandEntryList extends ContainerObjectSelectionList<CommandEntryL
 
         @Override
         public void render(GuiGraphics guiGraphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isHovering, float partialTicks) {
-            if (isHovering || this.isMouseOver(mouseX, mouseY)) {
+            if (isHovering || CommandEntryList.this.getSelected() == this) {
                 guiGraphics.fill(left, top, left + width, top + height, 0x44FFFFFF);
             }
             guiGraphics.drawString(minecraft.font, this.command, left + 5, top + (height - minecraft.font.lineHeight) / 2, 0xFFFFFF);
@@ -65,19 +77,6 @@ public class CommandEntryList extends ContainerObjectSelectionList<CommandEntryL
         @Override
         public Component getNarration() {
             return Component.literal(this.command);
-        }
-
-        @Override
-        public List<? extends net.minecraft.client.gui.narration.NarratableEntry> narratables() {
-            return Collections.singletonList(new net.minecraft.client.gui.narration.NarratableEntry() {
-                public net.minecraft.client.gui.narration.NarrationPriority narrationPriority() {
-                    return net.minecraft.client.gui.narration.NarrationPriority.FOCUSED;
-                }
-
-                public void updateNarration(NarrationElementOutput p_169152_) {
-                    p_169152_.add(net.minecraft.client.gui.narration.NarrationPart.TITLE, getNarration());
-                }
-            });
         }
     }
 }

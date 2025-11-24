@@ -15,7 +15,7 @@ public class EntityInit {
 
     public static final RegistryObject<EntityType<RouletteEntity>> ROULETTE =
             ENTITIES.register("roulette", () -> EntityType.Builder.of(RouletteEntity::new, MobCategory.MISC)
-                    .sized(2.5f, 0.5f) // 当たり判定を少し広めに
+                    .sized(2.0f, 2.5f) // 縦置きに合わせて高さと幅を調整
                     .build("roulette"));
 
     public static void register(IEventBus eventBus) {

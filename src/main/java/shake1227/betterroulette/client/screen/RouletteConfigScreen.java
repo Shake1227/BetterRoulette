@@ -64,55 +64,56 @@ public class RouletteConfigScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        this.clearWidgets(); // clearRenderables is better practice but clearWidgets also works
+        this.clearWidgets();
         this.detailPanelWidgets.clear();
 
         int mainPanelWidth = 150;
         int detailPanelWidth = 150;
-        int panelGap = 10;
+        int panelGap = 20;
         int totalWidth = mainPanelWidth + panelGap + detailPanelWidth;
-        int left = (this.width - totalWidth) / 2;
-        int right = left + mainPanelWidth + panelGap;
-        int top = 32;
+        int startX = (this.width - totalWidth) / 2;
+        int topY = 40;
 
-        this.nameBox = new EditBox(this.font, left, top, mainPanelWidth, 20, Component.translatable("gui.betterroulette.config.name"));
+        this.nameBox = new EditBox(this.font, startX, topY, mainPanelWidth, 20, Component.translatable("gui.betterroulette.config.name"));
         this.nameBox.setValue(Component.Serializer.fromJson(this.nbt.getString("Name")).getString());
         this.addRenderableWidget(this.nameBox);
 
-        this.costBox = new EditBox(this.font, left, top + 25, mainPanelWidth / 2 - 2, 20, Component.translatable("gui.betterroulette.config.cost"));
+        this.costBox = new EditBox(this.font, startX, topY + 25, mainPanelWidth / 2 - 5, 20, Component.translatable("gui.betterroulette.config.cost"));
         this.costBox.setValue(String.valueOf(this.nbt.getInt("Cost")));
         this.costBox.setFilter(s -> s.isEmpty() || s.matches("\\d+"));
         this.addRenderableWidget(this.costBox);
 
-        this.useVaultButton = CycleButton.onOffBuilder(this.nbt.getBoolean("UseVault")).create(left + mainPanelWidth / 2 + 2, top + 25, mainPanelWidth / 2, 20, Component.translatable("gui.betterroulette.config.use_vault"));
+        this.useVaultButton = CycleButton.onOffBuilder(this.nbt.getBoolean("UseVault")).create(startX + mainPanelWidth / 2 + 5, topY + 25, mainPanelWidth / 2 - 5, 20, Component.translatable("gui.betterroulette.config.use_vault"));
         this.addRenderableWidget(this.useVaultButton);
 
-        int listY = top + 55;
-        int listHeight = this.height - listY - 60;
+        int listY = topY + 55;
+        int listHeight = this.height - listY - 40;
         this.entryList = new RouletteEntryList(this, this.minecraft, mainPanelWidth, listHeight, listY, 24);
-        this.entryList.setLeftPos(left);
+        this.entryList.setLeftPos(startX);
         this.addRenderableWidget(this.entryList);
 
-        this.addEntryButton = Button.builder(Component.translatable("gui.betterroulette.config.add"), b -> {
+        this.addEntryButton = Button.builder(Component.literal("+"), b -> {
             this.entries.add(new RouletteEntry("New Entry", 0xAAAAAA, new ArrayList<>(), false));
             this.entryList.updateEntries(this.entries);
-        }).bounds(left, listY + listHeight + 2, 20, 20).build();
+        }).bounds(startX, listY + listHeight + 5, 20, 20).build();
         this.addRenderableWidget(this.addEntryButton);
 
-        this.removeEntryButton = Button.builder(Component.translatable("gui.betterroulette.config.remove"), b -> {
+        this.removeEntryButton = Button.builder(Component.literal("-"), b -> {
             if (this.selectedEntry != null) {
                 this.entries.remove(this.selectedEntry.rouletteEntry);
                 setSelectedEntry(null);
                 this.entryList.updateEntries(this.entries);
             }
-        }).bounds(left + 22, listY + listHeight + 2, 20, 20).build();
+        }).bounds(startX + 25, listY + listHeight + 5, 20, 20).build();
         this.addRenderableWidget(this.removeEntryButton);
 
-        this.entryNameBox = new EditBox(this.font, right, top, detailPanelWidth, 20, Component.literal("Entry Name"));
+        int rightX = startX + mainPanelWidth + panelGap;
+
+        this.entryNameBox = new EditBox(this.font, rightX, topY, detailPanelWidth, 20, Component.literal("Entry Name"));
         this.entryNameBox.setResponder(s -> { if(this.selectedEntry != null) this.selectedEntry.rouletteEntry.setName(s); });
         this.detailPanelWidgets.add(this.entryNameBox);
 
-        this.entryColorBox = new EditBox(this.font, right, top + 25, detailPanelWidth - 24, 20, Component.literal("Color Code"));
+        this.entryColorBox = new EditBox(this.font, rightX, topY + 25, detailPanelWidth - 25, 20, Component.literal("Color Code"));
         this.entryColorBox.setFilter(s -> s.matches("[0-9a-fA-F]*") && s.length() <= 6);
         this.entryColorBox.setResponder(s -> {
             if (this.selectedEntry != null) {
@@ -123,15 +124,19 @@ public class RouletteConfigScreen extends Screen {
         });
         this.detailPanelWidgets.add(this.entryColorBox);
 
-        int cmdListY = top + 80;
-        int cmdListHeight = 80;
+        this.isJackpotButton = CycleButton.onOffBuilder(false)
+                .create(rightX, topY + 50, detailPanelWidth, 20, Component.literal("Is Jackpot"), (btn, val) -> {
+                    if (this.selectedEntry != null) this.selectedEntry.rouletteEntry.setJackpot(val);
+                });
+        this.detailPanelWidgets.add(this.isJackpotButton);
+
+        int cmdListY = topY + 80;
+        int cmdListHeight = listHeight - 80;
         this.commandList = new CommandEntryList(this, Lists.newArrayList(), this.minecraft, detailPanelWidth, cmdListHeight, cmdListY, 16);
-        this.commandList.setLeftPos(right);
-        // commandList is a renderable/listener, but not an AbstractWidget, so don't add it to detailPanelWidgets
+        this.commandList.setLeftPos(rightX);
         this.addRenderableWidget(this.commandList);
 
-
-        this.commandBox = new EditBox(this.font, right, cmdListY + cmdListHeight + 2, detailPanelWidth - 22, 20, Component.literal("Command"));
+        this.commandBox = new EditBox(this.font, rightX, cmdListY + cmdListHeight + 5, detailPanelWidth - 45, 20, Component.literal("Command"));
         this.detailPanelWidgets.add(this.commandBox);
 
         this.addCommandButton = Button.builder(Component.literal("+"), b -> {
@@ -140,7 +145,7 @@ public class RouletteConfigScreen extends Screen {
                 this.commandList.updateEntries();
                 this.commandBox.setValue("");
             }
-        }).bounds(right + detailPanelWidth - 20, cmdListY + cmdListHeight + 2, 20, 20).build();
+        }).bounds(rightX + detailPanelWidth - 42, cmdListY + cmdListHeight + 5, 20, 20).build();
         this.detailPanelWidgets.add(this.addCommandButton);
 
         this.removeCommandButton = Button.builder(Component.literal("-"), b -> {
@@ -149,14 +154,8 @@ public class RouletteConfigScreen extends Screen {
                 this.selectedCommand = null;
                 this.commandList.updateEntries();
             }
-        }).bounds(right, cmdListY + cmdListHeight + 24, 20, 20).build();
+        }).bounds(rightX + detailPanelWidth - 20, cmdListY + cmdListHeight + 5, 20, 20).build();
         this.detailPanelWidgets.add(this.removeCommandButton);
-
-        this.isJackpotButton = CycleButton.onOffBuilder(false)
-                .create(right, top + 50, detailPanelWidth, 20, Component.literal("Is Jackpot"), (btn, val) -> {
-                    if (this.selectedEntry != null) this.selectedEntry.rouletteEntry.setJackpot(val);
-                });
-        this.detailPanelWidgets.add(this.isJackpotButton);
 
         this.detailPanelWidgets.forEach(this::addRenderableWidget);
 
@@ -169,7 +168,7 @@ public class RouletteConfigScreen extends Screen {
 
     private void updateDetailPanel(boolean visible) {
         this.detailPanelWidgets.forEach(w -> w.visible = visible);
-        this.commandList.setVisible(visible); // Control visibility of the list separately
+        this.commandList.setVisible(visible);
         if (visible && this.selectedEntry != null) {
             RouletteEntry entry = this.selectedEntry.rouletteEntry;
             this.entryNameBox.setValue(entry.getName());
@@ -183,13 +182,17 @@ public class RouletteConfigScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(guiGraphics);
+        // 背景の土を描画しない (renderDirtBackgroundを削除)
+        // 画面全体を半透明の黒で塗りつぶす
+        guiGraphics.fillGradient(0, 0, this.width, this.height, 0xC0101010, 0xD0101010);
+
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 12, 0xFFFFFF);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 15, 0xFFFFFF);
 
         if (this.selectedEntry != null && this.entryColorBox.isVisible()) {
-            int right = (this.width - (150 + 10 + 150)) / 2 + 150 + 10;
-            guiGraphics.fill(right + 150 - 22, 32 + 25, right + 150 - 2, 32 + 25 + 20, 0xFF000000 | this.selectedEntry.rouletteEntry.getColor());
+            int rightX = this.entryColorBox.getX();
+            int topY = this.entryColorBox.getY();
+            guiGraphics.fill(rightX + this.entryColorBox.getWidth() + 3, topY, rightX + this.entryColorBox.getWidth() + 23, topY + 20, 0xFF000000 | this.selectedEntry.rouletteEntry.getColor());
         }
     }
 

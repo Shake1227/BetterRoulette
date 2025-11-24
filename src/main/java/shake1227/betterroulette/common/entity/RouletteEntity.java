@@ -20,7 +20,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 import shake1227.betterroulette.common.data.RouletteEntry;
 import shake1227.betterroulette.compats.VaultProxy;
 import shake1227.betterroulette.core.config.ModConfig;
@@ -58,9 +57,17 @@ public class RouletteEntity extends Entity {
         super(entityType, level);
     }
 
+    // 重要: これをtrueにしないとクリックも攻撃も当たり判定も発生しません
+    @Override
+    public boolean isPickable() {
+        return true;
+    }
+
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
+        if (hand != InteractionHand.MAIN_HAND) return InteractionResult.PASS;
         if (level().isClientSide) return InteractionResult.SUCCESS;
+
         if (!(player instanceof ServerPlayer serverPlayer)) return InteractionResult.FAIL;
 
         if (player.isShiftKeyDown()) {
@@ -285,9 +292,4 @@ public class RouletteEntity extends Entity {
     public UUID getOwnerId() { return this.ownerUUID; }
     public boolean isOwnerOrOp(Player player) { return player.getUUID().equals(ownerUUID) || player.hasPermissions(2); }
     public float getRenderRotation() { return this.entityData.get(RENDER_ROTATION); }
-    @Override public boolean isPushable() { return false; }
-    @Override public void setPos(double x, double y, double z) {
-        super.setPos(x, y, z);
-        this.setBoundingBox(this.getType().getDimensions().makeBoundingBox(new Vec3(x, y, z)));
-    }
 }
