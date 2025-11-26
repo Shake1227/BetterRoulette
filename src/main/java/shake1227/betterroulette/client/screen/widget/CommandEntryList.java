@@ -1,5 +1,6 @@
 package shake1227.betterroulette.client.screen.widget;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ObjectSelectionList;
@@ -35,7 +36,19 @@ public class CommandEntryList extends ObjectSelectionList<CommandEntryList.Entry
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (this.visible) {
-            super.render(guiGraphics, mouseX, mouseY, partialTick);
+            this.renderBackground(guiGraphics);
+
+            double guiScale = Minecraft.getInstance().getWindow().getGuiScale();
+            double scale = guiScale * parent.getScaleFactor();
+
+            int sX = (int) (this.x0 * scale);
+            int sY = (int) (Minecraft.getInstance().getWindow().getHeight() - (this.y1 * scale));
+            int sW = (int) ((this.x1 - this.x0) * scale);
+            int sH = (int) ((this.y1 - this.y0) * scale);
+
+            RenderSystem.enableScissor(sX, sY, sW, sH);
+            this.renderList(guiGraphics, mouseX, mouseY, partialTick);
+            RenderSystem.disableScissor();
         }
     }
 

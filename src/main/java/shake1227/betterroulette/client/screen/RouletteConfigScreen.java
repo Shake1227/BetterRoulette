@@ -7,10 +7,11 @@ import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import shake1227.betterroulette.client.renderer.util.RenderUtil;
 import shake1227.betterroulette.client.screen.widget.CommandEntryList;
 import shake1227.betterroulette.client.screen.widget.RouletteEntryList;
 import shake1227.betterroulette.common.data.RouletteEntry;
@@ -21,6 +22,7 @@ import shake1227.betterroulette.network.packet.CPacketUpdateRoulette;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class RouletteConfigScreen extends Screen {
     private final int entityId;
@@ -29,25 +31,24 @@ public class RouletteConfigScreen extends Screen {
 
     private EditBox nameBox;
     private EditBox costBox;
-    private CycleButton<Boolean> useVaultButton;
-    private CycleButton<Boolean> useItemCostButton;
+    private ScaledBooleanButton useVaultButton;
+    private ScaledBooleanButton useItemCostButton;
     private Button setItemCostButton;
     private ItemStack pendingCostItem = ItemStack.EMPTY;
 
-    // 新設定
     private EditBox coastingBox;
-    private CycleButton<Boolean> stopModeButton; // true=Auto, false=Manual
+    private ScaledBooleanButton stopModeButton;
     private EditBox autoTimeMinBox;
     private EditBox autoTimeMaxBox;
-    private CycleButton<Boolean> mixModeButton; // Mixモードボタン
-    private EditBox mixSlotCountBox; // 追加: マス目数設定
+    private ScaledBooleanButton mixModeButton;
+    private EditBox mixSlotCountBox;
 
     private RouletteEntryList entryList;
     private Button addEntryButton;
     private Button removeEntryButton;
 
     private EditBox entryNameBox;
-    private EditBox entryDescBox; // 追加
+    private EditBox entryDescBox;
     private EditBox entryWeightBox;
     private EditBox entryColorBox;
     private Button colorPreviewButton;
@@ -57,7 +58,7 @@ public class RouletteConfigScreen extends Screen {
     private CommandEntryList commandList;
     private Button addCommandButton;
     private Button removeCommandButton;
-    private CycleButton<Boolean> isJackpotButton;
+    private ScaledBooleanButton isJackpotButton;
 
     private Button deleteRouletteButton;
 
@@ -67,6 +68,7 @@ public class RouletteConfigScreen extends Screen {
     private String selectedCommand;
 
     private boolean showColorPicker = false;
+    private float scaleFactor = 1.0f;
 
     public RouletteConfigScreen(int entityId, CompoundTag nbt) {
         super(Component.translatable("gui.betterroulette.config.title"));
@@ -99,18 +101,31 @@ public class RouletteConfigScreen extends Screen {
         this.clearWidgets();
         this.detailPanelWidgets.clear();
 
+        float currentGuiScale = (float) this.minecraft.getWindow().getGuiScale();
+        this.scaleFactor = 3.0f / currentGuiScale;
+
+        int virtualWidth = (int) (this.width / this.scaleFactor);
+        int virtualHeight = (int) (this.height / this.scaleFactor);
+
         int mainPanelWidth = 160;
         int detailPanelWidth = 160;
         int panelGap = 20;
         int totalWidth = mainPanelWidth + panelGap + detailPanelWidth;
-        int startX = (this.width - totalWidth) / 2;
+        int startX = (virtualWidth - totalWidth) / 2;
         int topY = 30;
 
-        // --- 左側: 全体設定 ---
         int leftY = topY;
 
         this.nameBox = new EditBox(this.font, startX, leftY, mainPanelWidth, 20, Component.translatable("gui.betterroulette.config.name"));
-        this.nameBox.setValue(Component.Serializer.fromJson(this.nbt.getString("Name")).getString());
+        String rawJson = this.nbt.getString("Name");
+        try {
+            Component c = Component.Serializer.fromJson(rawJson);
+            if(c != null) this.nameBox.setValue(c.getString());
+            else this.nameBox.setValue(rawJson);
+        } catch(Exception e) {
+            this.nameBox.setValue(rawJson);
+        }
+
         this.nameBox.setTooltip(Tooltip.create(Component.translatable("gui.betterroulette.tooltip.name")));
         this.addRenderableWidget(this.nameBox);
         leftY += 25;
@@ -121,14 +136,24 @@ public class RouletteConfigScreen extends Screen {
         this.costBox.setTooltip(Tooltip.create(Component.translatable("gui.betterroulette.tooltip.cost")));
         this.addRenderableWidget(this.costBox);
 
-        this.useVaultButton = CycleButton.onOffBuilder(this.nbt.getBoolean("UseVault"))
-                .create(startX + mainPanelWidth / 2 + 5, leftY, mainPanelWidth / 2 - 5, 20, Component.translatable("gui.betterroulette.config.use_vault"));
+        this.useVaultButton = new ScaledBooleanButton(
+                startX + mainPanelWidth / 2 + 5, leftY, mainPanelWidth / 2 - 5, 20,
+                Component.translatable("gui.betterroulette.config.use_vault"),
+                CommonComponents.OPTION_ON, CommonComponents.OPTION_OFF,
+                this.nbt.getBoolean("UseVault"),
+                val -> {}
+        );
         this.useVaultButton.setTooltip(Tooltip.create(Component.translatable("gui.betterroulette.tooltip.use_vault")));
         this.addRenderableWidget(this.useVaultButton);
         leftY += 25;
 
-        this.useItemCostButton = CycleButton.onOffBuilder(this.nbt.getBoolean("UseItemCost"))
-                .create(startX, leftY, mainPanelWidth / 2 - 5, 20, Component.translatable("gui.betterroulette.config.use_item"));
+        this.useItemCostButton = new ScaledBooleanButton(
+                startX, leftY, mainPanelWidth / 2 - 5, 20,
+                Component.translatable("gui.betterroulette.config.use_item"),
+                CommonComponents.OPTION_ON, CommonComponents.OPTION_OFF,
+                this.nbt.getBoolean("UseItemCost"),
+                val -> {}
+        );
         this.useItemCostButton.setTooltip(Tooltip.create(Component.translatable("gui.betterroulette.tooltip.use_item")));
         this.addRenderableWidget(this.useItemCostButton);
 
@@ -150,13 +175,17 @@ public class RouletteConfigScreen extends Screen {
         leftY += 25;
 
         boolean isAuto = !this.nbt.contains("IsAutoStop") || this.nbt.getBoolean("IsAutoStop");
-        this.stopModeButton = CycleButton.booleanBuilder(Component.translatable("gui.betterroulette.config.stop_mode.auto"), Component.translatable("gui.betterroulette.config.stop_mode.manual"))
-                .displayOnlyValue()
-                .withInitialValue(isAuto)
-                .create(startX, leftY, mainPanelWidth, 20, Component.translatable("gui.betterroulette.config.stop_mode"), (btn, val) -> {
+        this.stopModeButton = new ScaledBooleanButton(
+                startX, leftY, mainPanelWidth, 20,
+                Component.translatable("gui.betterroulette.config.stop_mode"),
+                Component.translatable("gui.betterroulette.config.stop_mode.auto"),
+                Component.translatable("gui.betterroulette.config.stop_mode.manual"),
+                isAuto,
+                val -> {
                     this.autoTimeMinBox.visible = val;
                     this.autoTimeMaxBox.visible = val;
-                });
+                }
+        );
         this.stopModeButton.setTooltip(Tooltip.create(Component.translatable("gui.betterroulette.tooltip.stop_mode")));
         this.addRenderableWidget(this.stopModeButton);
         leftY += 25;
@@ -179,19 +208,19 @@ public class RouletteConfigScreen extends Screen {
         this.addRenderableWidget(this.autoTimeMaxBox);
         leftY += 25;
 
-        // Mix Mode & Slot Count
         boolean isMix = this.nbt.contains("IsMixMode") && this.nbt.getBoolean("IsMixMode");
-        this.mixModeButton = CycleButton.booleanBuilder(Component.translatable("gui.betterroulette.config.mix_mode"), Component.translatable("gui.betterroulette.config.normal_mode"))
-                .displayOnlyValue()
-                .withInitialValue(isMix)
-                .create(startX, leftY, mainPanelWidth, 20, Component.literal("Mix Mode"), (btn, val) -> {
-                    this.mixSlotCountBox.visible = val;
-                });
+        this.mixModeButton = new ScaledBooleanButton(
+                startX, leftY, mainPanelWidth, 20,
+                Component.literal("Mix Mode"),
+                Component.translatable("gui.betterroulette.config.mix_mode"),
+                Component.translatable("gui.betterroulette.config.normal_mode"),
+                isMix,
+                val -> this.mixSlotCountBox.visible = val
+        );
         this.mixModeButton.setTooltip(Tooltip.create(Component.translatable("gui.betterroulette.tooltip.mix_mode")));
         this.addRenderableWidget(this.mixModeButton);
         leftY += 25;
 
-        // Mix Slot Count Box
         int slotCount = this.nbt.contains("MixSlotCount") ? this.nbt.getInt("MixSlotCount") : 60;
         this.mixSlotCountBox = new EditBox(this.font, startX, leftY, mainPanelWidth, 20, Component.translatable("gui.betterroulette.config.mix_slots"));
         this.mixSlotCountBox.setValue(String.valueOf(slotCount));
@@ -201,8 +230,7 @@ public class RouletteConfigScreen extends Screen {
         this.addRenderableWidget(this.mixSlotCountBox);
         leftY += 30;
 
-        // Entry List
-        int listHeight = this.height - leftY - 40;
+        int listHeight = virtualHeight - leftY - 40;
         this.entryList = new RouletteEntryList(this, this.minecraft, mainPanelWidth, listHeight, leftY, 24);
         this.entryList.setLeftPos(startX);
         this.addRenderableWidget(this.entryList);
@@ -227,12 +255,9 @@ public class RouletteConfigScreen extends Screen {
                 .build();
         this.addRenderableWidget(this.removeEntryButton);
 
-
-        // --- 右側: 詳細設定 ---
         int rightX = startX + mainPanelWidth + panelGap;
         int currentDetailY = topY;
 
-        // 1. 名前
         this.entryNameBox = new EditBox(this.font, rightX, currentDetailY, detailPanelWidth, 20, Component.translatable("gui.betterroulette.config.entry_name"));
         this.entryNameBox.setResponder(s -> {
             if(this.selectedEntry != null) this.selectedEntry.rouletteEntry.setName(s);
@@ -241,7 +266,6 @@ public class RouletteConfigScreen extends Screen {
         this.detailPanelWidgets.add(this.entryNameBox);
         currentDetailY += 24;
 
-        // 2. 詳細 (Description)
         this.entryDescBox = new EditBox(this.font, rightX, currentDetailY, detailPanelWidth, 20, Component.translatable("gui.betterroulette.config.entry_desc"));
         this.entryDescBox.setResponder(s -> {
             if(this.selectedEntry != null) this.selectedEntry.rouletteEntry.setDesc(s);
@@ -250,7 +274,6 @@ public class RouletteConfigScreen extends Screen {
         this.detailPanelWidgets.add(this.entryDescBox);
         currentDetailY += 24;
 
-        // 3. Weight & Color Hex
         this.entryWeightBox = new EditBox(this.font, rightX, currentDetailY, detailPanelWidth / 2 - 2, 20, Component.translatable("gui.betterroulette.config.weight"));
         this.entryWeightBox.setFilter(s -> s.isEmpty() || s.matches("\\d+"));
         this.entryWeightBox.setResponder(s -> {
@@ -278,7 +301,6 @@ public class RouletteConfigScreen extends Screen {
         this.detailPanelWidgets.add(this.entryColorBox);
         currentDetailY += 24;
 
-        // 4. 色選択ボタン
         this.colorPreviewButton = Button.builder(Component.empty(), b -> {
                     toggleColorPicker();
                 }).bounds(rightX, currentDetailY, detailPanelWidth, 20)
@@ -287,25 +309,27 @@ public class RouletteConfigScreen extends Screen {
         this.detailPanelWidgets.add(this.colorPreviewButton);
         currentDetailY += 24;
 
-        // 5. Jackpotボタン
-        this.isJackpotButton = CycleButton.onOffBuilder(false)
-                .create(rightX, currentDetailY, detailPanelWidth, 20, Component.translatable("gui.betterroulette.config.is_jackpot"), (btn, val) -> {
+        this.isJackpotButton = new ScaledBooleanButton(
+                rightX, currentDetailY, detailPanelWidth, 20,
+                Component.translatable("gui.betterroulette.config.is_jackpot"),
+                CommonComponents.OPTION_ON, CommonComponents.OPTION_OFF,
+                false,
+                val -> {
                     if (this.selectedEntry != null) this.selectedEntry.rouletteEntry.setJackpot(val);
-                });
+                }
+        );
         this.isJackpotButton.setTooltip(Tooltip.create(Component.translatable("gui.betterroulette.tooltip.is_jackpot")));
         this.detailPanelWidgets.add(this.isJackpotButton);
         currentDetailY += 24;
 
-        // 6. コマンドリスト
         int bottomPadding = 45;
         int commandInputHeight = 24;
-        int cmdListHeight = this.height - currentDetailY - bottomPadding - commandInputHeight;
+        int cmdListHeight = virtualHeight - currentDetailY - bottomPadding - commandInputHeight;
 
         this.commandList = new CommandEntryList(this, Lists.newArrayList(), this.minecraft, detailPanelWidth, cmdListHeight, currentDetailY, 16);
         this.commandList.setLeftPos(rightX);
         this.addRenderableWidget(this.commandList);
 
-        // 7. コマンド入力欄
         int inputY = currentDetailY + cmdListHeight + 2;
         this.commandBox = new EditBox(this.font, rightX, inputY, detailPanelWidth - 45, 20, Component.translatable("gui.betterroulette.config.command"));
         this.commandBox.setTooltip(Tooltip.create(Component.translatable("gui.betterroulette.tooltip.command")));
@@ -332,12 +356,11 @@ public class RouletteConfigScreen extends Screen {
 
         this.detailPanelWidgets.forEach(this::addRenderableWidget);
 
-        // 保存ボタン
         int buttonWidth = 120;
         int buttonGap = 10;
-        int buttonY = this.height - 25;
+        int buttonY = virtualHeight - 25;
         int totalButtonWidth = (buttonWidth * 2) + buttonGap;
-        int startButtonX = (this.width - totalButtonWidth) / 2;
+        int startButtonX = (virtualWidth - totalButtonWidth) / 2;
 
         Button saveButton = Button.builder(Component.translatable("gui.betterroulette.config.save"), b -> this.onClose())
                 .bounds(startButtonX, buttonY, buttonWidth, 20)
@@ -345,7 +368,6 @@ public class RouletteConfigScreen extends Screen {
                 .build();
         this.addRenderableWidget(saveButton);
 
-        // 削除ボタン
         this.deleteRouletteButton = Button.builder(Component.translatable("gui.betterroulette.config.delete"), b -> {
                     ModPackets.sendToServer(new CPacketDeleteRoulette(this.entityId));
                     super.onClose();
@@ -354,7 +376,6 @@ public class RouletteConfigScreen extends Screen {
                 .build();
         this.addRenderableWidget(this.deleteRouletteButton);
 
-        // カラーピッカー (Widgetとして登録)
         this.colorPicker = new ColorPickerWidget(rightX + (detailPanelWidth - 140) / 2, this.colorPreviewButton.getY() + 25, 50);
         this.colorPicker.visible = false;
         this.addWidget(this.colorPicker);
@@ -362,39 +383,68 @@ public class RouletteConfigScreen extends Screen {
         this.updateDetailPanel(false);
     }
 
+    public float getScaleFactor() {
+        return this.scaleFactor;
+    }
+
+    public void setSelectedEntry(RouletteEntryList.Entry entry) {
+        this.selectedEntry = entry;
+        this.entryList.setSelected(entry);
+        this.selectedCommand = null;
+        updateDetailPanel(entry != null);
+    }
+
+    public void setSelectedCommand(String command) {
+        this.selectedCommand = command;
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        double vmX = mouseX / this.scaleFactor;
+        double vmY = mouseY / this.scaleFactor;
+
         if (this.showColorPicker && this.colorPicker.visible) {
-            if (this.colorPicker.mouseClicked(mouseX, mouseY, button)) return true;
-            if (!this.colorPicker.isMouseOver(mouseX, mouseY) && this.colorPreviewButton != null && !this.colorPreviewButton.isMouseOver(mouseX, mouseY)) {
+            if (this.colorPicker.mouseClicked(vmX, vmY, button)) return true;
+            if (!this.colorPicker.isMouseOver(vmX, vmY) && this.colorPreviewButton != null && !this.colorPreviewButton.isMouseOver(vmX, vmY)) {
                 this.showColorPicker = false;
                 this.colorPicker.visible = false;
                 return true;
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(vmX, vmY, button);
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        double vmX = mouseX / this.scaleFactor;
+        double vmY = mouseY / this.scaleFactor;
+
         if (this.showColorPicker && this.colorPicker.visible) {
-            if (this.colorPicker.mouseReleased(mouseX, mouseY, button)) return true;
+            if (this.colorPicker.mouseReleased(vmX, vmY, button)) return true;
         }
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(vmX, vmY, button);
     }
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        double vmX = mouseX / this.scaleFactor;
+        double vmY = mouseY / this.scaleFactor;
+        double vdX = dragX / this.scaleFactor;
+        double vdY = dragY / this.scaleFactor;
+
         if (this.showColorPicker && this.colorPicker.visible) {
-            if (this.colorPicker.mouseDragged(mouseX, mouseY, button, dragX, dragY)) return true;
+            if (this.colorPicker.mouseDragged(vmX, vmY, button, vdX, vdY)) return true;
         }
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        return super.mouseDragged(vmX, vmY, button, vdX, vdY);
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        if (this.showColorPicker && this.colorPicker.visible && this.colorPicker.isMouseOver(mouseX, mouseY)) return true;
-        return super.mouseScrolled(mouseX, mouseY, delta);
+        double vmX = mouseX / this.scaleFactor;
+        double vmY = mouseY / this.scaleFactor;
+
+        if (this.showColorPicker && this.colorPicker.visible && this.colorPicker.isMouseOver(vmX, vmY)) return true;
+        return super.mouseScrolled(vmX, vmY, delta);
     }
 
     private void syncCommandList() {
@@ -414,7 +464,7 @@ public class RouletteConfigScreen extends Screen {
         if (visible && this.selectedEntry != null) {
             RouletteEntry entry = this.selectedEntry.rouletteEntry;
             this.entryNameBox.setValue(entry.getName());
-            this.entryDescBox.setValue(entry.getDesc()); // 値セット
+            this.entryDescBox.setValue(entry.getDesc());
             this.entryWeightBox.setValue(String.valueOf(entry.getWeight()));
             this.entryColorBox.setValue(String.format("%06X", entry.getColor()));
             this.isJackpotButton.setValue(entry.isJackpot());
@@ -434,13 +484,22 @@ public class RouletteConfigScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        guiGraphics.fillGradient(0, 0, this.width, this.height, 0xC0101010, 0xD0101010);
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        int virtualMouseX = (int) (mouseX / this.scaleFactor);
+        int virtualMouseY = (int) (mouseY / this.scaleFactor);
 
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 15, 0xFFFFFF);
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().scale(this.scaleFactor, this.scaleFactor, 1.0f);
+
+        int virtualWidth = (int) (this.width / this.scaleFactor);
+        int virtualHeight = (int) (this.height / this.scaleFactor);
+        guiGraphics.fillGradient(0, 0, virtualWidth, virtualHeight, 0xC0101010, 0xD0101010);
+
+        super.render(guiGraphics, virtualMouseX, virtualMouseY, partialTicks);
+
+        guiGraphics.drawCenteredString(this.font, this.title, virtualWidth / 2, 15, 0xFFFFFF);
 
         if (this.setItemCostButton.isHovered() && !this.pendingCostItem.isEmpty()) {
-            guiGraphics.renderTooltip(this.font, this.pendingCostItem, mouseX, mouseY);
+            guiGraphics.renderTooltip(this.font, this.pendingCostItem, virtualMouseX, virtualMouseY);
         }
 
         if (this.selectedEntry != null && this.entryColorBox.isVisible()) {
@@ -457,9 +516,11 @@ public class RouletteConfigScreen extends Screen {
         if (this.colorPicker.visible) {
             guiGraphics.pose().pushPose();
             guiGraphics.pose().translate(0, 0, 500);
-            this.colorPicker.render(guiGraphics, mouseX, mouseY, partialTicks);
+            this.colorPicker.render(guiGraphics, virtualMouseX, virtualMouseY, partialTicks);
             guiGraphics.pose().popPose();
         }
+
+        guiGraphics.pose().popPose();
     }
 
     @Override
@@ -470,6 +531,7 @@ public class RouletteConfigScreen extends Screen {
         } catch (NumberFormatException e) {
             this.nbt.putInt("Cost", 0);
         }
+        // ScaledBooleanButton#getValue() が最新の値を返すことを利用してNBT更新
         this.nbt.putBoolean("UseVault", this.useVaultButton.getValue());
         this.nbt.putBoolean("UseItemCost", this.useItemCostButton.getValue());
         this.nbt.put("CostItem", this.pendingCostItem.save(new CompoundTag()));
@@ -498,15 +560,72 @@ public class RouletteConfigScreen extends Screen {
         super.onClose();
     }
 
-    public void setSelectedEntry(RouletteEntryList.Entry entry) {
-        this.selectedEntry = entry;
-        this.entryList.setSelected(entry);
-        this.selectedCommand = null;
-        updateDetailPanel(entry != null);
-    }
+    // --- Inner Classes ---
 
-    public void setSelectedCommand(String command) {
-        this.selectedCommand = command;
+    private class ScaledBooleanButton extends Button {
+        private final Component prefix;
+        private final Component onText;
+        private final Component offText;
+        private boolean value;
+        private final Consumer<Boolean> onToggle;
+
+        public ScaledBooleanButton(int x, int y, int width, int height, Component prefix, Component onText, Component offText, boolean initialValue, Consumer<Boolean> onToggle) {
+            // super.onPressに空の処理を渡すことで、ボタン自体のクリック動作をカスタマイズ可能にする
+            super(x, y, width, height, Component.empty(), b -> {}, DEFAULT_NARRATION);
+            this.prefix = prefix;
+            this.onText = onText;
+            this.offText = offText;
+            this.value = initialValue;
+            this.onToggle = onToggle;
+            this.updateMessage();
+        }
+
+        @Override
+        public void onPress() {
+            this.value = !this.value; // 値をトグル
+            this.updateMessage();
+            this.onToggle.accept(this.value);
+            this.playDownSound(Minecraft.getInstance().getSoundManager()); // クリック音を再生
+        }
+
+        private void updateMessage() {
+            MutableComponent combined = Component.empty().append(prefix).append(": ").append(value ? onText : offText);
+            this.setMessage(combined);
+        }
+
+        public boolean getValue() {
+            return value;
+        }
+
+        public void setValue(boolean value) {
+            this.value = value;
+            updateMessage();
+        }
+
+        @Override
+        public void renderString(GuiGraphics guiGraphics, net.minecraft.client.gui.Font font, int color) {
+            Component message = this.getMessage();
+            int textWidth = font.width(message);
+            int availableWidth = this.width - 6;
+
+            // テキストがボタンの幅に収まらない場合、自動的に縮小して表示
+            if (textWidth > availableWidth) {
+                float scale = (float) availableWidth / textWidth;
+                int cx = this.getX() + this.width / 2;
+                int cy = this.getY() + this.height / 2;
+                int offsetY = (int)(4 * scale);
+
+                guiGraphics.pose().pushPose();
+                guiGraphics.pose().translate(cx, cy - offsetY, 0);
+                guiGraphics.pose().scale(scale, scale, 1.0f);
+                guiGraphics.drawCenteredString(font, message, 0, 0, color);
+                guiGraphics.pose().popPose();
+            } else {
+                int x = this.getX() + this.width / 2;
+                int y = this.getY() + (this.height - 8) / 2;
+                guiGraphics.drawCenteredString(font, message, x, y, color);
+            }
+        }
     }
 
     private class ColorPickerWidget extends AbstractWidget {

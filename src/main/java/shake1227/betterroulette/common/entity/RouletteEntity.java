@@ -27,7 +27,7 @@ import shake1227.betterroulette.core.config.ModConfig;
 import shake1227.betterroulette.network.ModPackets;
 import shake1227.betterroulette.network.packet.SPacketOpenGui;
 import shake1227.betterroulette.network.packet.SPacketOpenPlayGui;
-import shake1227.betterroulette.util.ChatUtil;
+import shake1227.betterroulette.client.renderer.util.ChatUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -83,7 +83,6 @@ public class RouletteEntity extends Entity {
         this.entityData.define(ENTRIES_NBT, new CompoundTag());
     }
 
-    // ★エラー原因だった必須メソッドの実装
     @Override
     protected void addAdditionalSaveData(CompoundTag nbt) {
         if (this.ownerUUID != null) nbt.putUUID("Owner", this.ownerUUID);
@@ -524,10 +523,11 @@ public class RouletteEntity extends Entity {
         RouletteEntry winner = serverSideEntries.get(winningEntryIndex);
         ServerLevel serverLevel = (ServerLevel) this.level();
 
+        // ここで ChatUtil.parse を通すことで、当選者の名前(winner.getName())に含まれる
+        // カラーコードもチャットメッセージに反映されます。
         Component resultMsg = ChatUtil.parse(Component.translatable("chat.betterroulette.result", winner.getName()).getString());
         serverLevel.getPlayers(p -> p.distanceToSqr(this) < 256).forEach(p -> p.sendSystemMessage(resultMsg));
 
-        // 詳細説明のチャット表示
         if (winner.getDesc() != null && !winner.getDesc().isEmpty()) {
             MutableComponent descMsg = Component.translatable("chat.betterroulette.prize_get")
                     .withStyle(ChatFormatting.YELLOW)
@@ -566,8 +566,7 @@ public class RouletteEntity extends Entity {
                 }
             }
 
-            serverLevel.getPlayers(p -> p.distanceToSqr(this) < 256)
-                    .forEach(p -> p.sendSystemMessage(ChatUtil.parse(Component.translatable("chat.betterroulette.jackpot").getString())));
+            // ジャックポット時の全体チャットは削除済み
 
             String jackpotCmd = ModConfig.SERVER.jackpotCommand.get();
             if (jackpotCmd != null && !jackpotCmd.isBlank()) {

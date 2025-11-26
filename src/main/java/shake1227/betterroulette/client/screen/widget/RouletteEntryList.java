@@ -1,11 +1,13 @@
 package shake1227.betterroulette.client.screen.widget;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.network.chat.Component;
 import shake1227.betterroulette.client.screen.RouletteConfigScreen;
 import shake1227.betterroulette.common.data.RouletteEntry;
+import shake1227.betterroulette.client.renderer.util.ChatUtil;
 
 import java.util.List;
 
@@ -18,6 +20,23 @@ public class RouletteEntryList extends ObjectSelectionList<RouletteEntryList.Ent
         this.centerListVertically = false;
         this.setRenderBackground(false);
         this.setRenderTopAndBottom(false);
+    }
+
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        this.renderBackground(guiGraphics);
+
+        double guiScale = Minecraft.getInstance().getWindow().getGuiScale();
+        double scale = guiScale * parent.getScaleFactor();
+
+        int sX = (int) (this.x0 * scale);
+        int sY = (int) (Minecraft.getInstance().getWindow().getHeight() - (this.y1 * scale));
+        int sW = (int) ((this.x1 - this.x0) * scale);
+        int sH = (int) ((this.y1 - this.y0) * scale);
+
+        RenderSystem.enableScissor(sX, sY, sW, sH);
+        this.renderList(guiGraphics, mouseX, mouseY, partialTick);
+        RenderSystem.disableScissor();
     }
 
     public void updateEntries(List<RouletteEntry> entries) {
@@ -51,7 +70,8 @@ public class RouletteEntryList extends ObjectSelectionList<RouletteEntryList.Ent
             guiGraphics.fill(left + 2, top + 2, left + 18, top + height - 2, 0xFF000000 | this.rouletteEntry.getColor());
             guiGraphics.renderOutline(left + 2, top + 2, 16, height - 4, 0xFF000000);
 
-            guiGraphics.drawString(minecraft.font, this.rouletteEntry.getName(), left + 24, top + (height - minecraft.font.lineHeight) / 2, 0xFFFFFF);
+            // 名前をChatUtil.parseで描画してカラーコードを適用
+            guiGraphics.drawString(minecraft.font, ChatUtil.parse(this.rouletteEntry.getName()), left + 24, top + (height - minecraft.font.lineHeight) / 2, 0xFFFFFF);
         }
 
         @Override

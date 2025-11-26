@@ -1,29 +1,56 @@
-package shake1227.betterroulette.util;
+package shake1227.betterroulette.client.renderer.util;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import net.minecraft.network.chat.Style;
 
 public class ChatUtil {
-    private static final Pattern FORMATTING_CODE_PATTERN = Pattern.compile("(?i)&([0-9A-FK-OR])");
 
     public static MutableComponent parse(String text) {
-        MutableComponent component = Component.literal("");
-        String[] parts = text.split("(?i)(?=&[0-9a-fk-or])");
-        for (String part : parts) {
-            Matcher matcher = FORMATTING_CODE_PATTERN.matcher(part);
-            if (matcher.find()) {
-                ChatFormatting format = ChatFormatting.getByCode(matcher.group(1).toLowerCase().charAt(0));
-                String content = part.substring(matcher.end());
-                if (format != null) {
-                    component.append(Component.literal(content).withStyle(format));
+        if (text == null || text.isEmpty()) {
+            return Component.literal("");
+        }
+
+        MutableComponent root = Component.literal("");
+        Style currentStyle = Style.EMPTY;
+        StringBuilder buffer = new StringBuilder();
+
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+
+            if (c == '&' && i + 1 < text.length()) {
+                if (buffer.length() > 0) {
+                    root.append(Component.literal(buffer.toString()).withStyle(currentStyle));
+                    buffer.setLength(0);
                 }
+
+                char code = text.charAt(i + 1);
+                ChatFormatting format = ChatFormatting.getByCode(code);
+
+                if (format != null) {
+                    if (format.isColor()) {
+                        currentStyle = Style.EMPTY.withColor(format);
+                    } else if (format == ChatFormatting.RESET) {
+                        currentStyle = Style.EMPTY;
+                    } else {
+                        currentStyle = currentStyle.applyFormat(format);
+                    }
+                } else {
+                    buffer.append("&");
+                    buffer.append(code);
+                }
+
+                i++;
             } else {
-                component.append(Component.literal(part));
+                buffer.append(c);
             }
         }
-        return component;
+
+        if (buffer.length() > 0) {
+            root.append(Component.literal(buffer.toString()).withStyle(currentStyle));
+        }
+
+        return root;
     }
 }
