@@ -21,8 +21,8 @@ public class ModConfig {
         public Server(ForgeConfigSpec.Builder builder) {
             builder.push("general");
             jackpotCommand = builder
-                    .comment("Command to execute when a player hits a jackpot. Use @p for player name.")
-                    .define("jackpotCommand", "say @p hit the jackpot!");
+                    .comment("Command to execute when a player hits a jackpot. Use @p or @dp for player name.")
+                    .define("jackpotCommand", "/execute at @dp run summon firework_rocket ~ ~1 ~ {Silent:1b,LifeTime:0,Motion:[0.0d,1.0d,0.0d],FireworksItem:{id:firework_rocket,Count:1,tag:{Fireworks:{Explosions:[{Type:4,Flicker:0b,Trail:1b,Colors:[I;15790320,6719955,14188952]}],FadeColors:[I;15790320],Flight:1}}}}");
             builder.pop();
         }
     }

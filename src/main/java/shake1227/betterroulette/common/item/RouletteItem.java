@@ -1,6 +1,7 @@
 package shake1227.betterroulette.common.item;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -20,11 +21,21 @@ public class RouletteItem extends Item {
         Player player = context.getPlayer();
 
         if (!level.isClientSide && player != null) {
-            BlockPos pos = context.getClickedPos().relative(context.getClickedFace());
+            Direction face = context.getClickedFace();
+            BlockPos pos = context.getClickedPos().relative(face);
 
             RouletteEntity roulette = EntityInit.ROULETTE.get().create(level);
             if (roulette != null) {
-                roulette.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+                // 座標調整: 0.5のオフセットを与えることで、クリックしたブロックの表面にぴったり配置
+                double x = pos.getX() + 0.5 - (face.getStepX() * 0.5);
+                double y = pos.getY();
+                double z = pos.getZ() + 0.5 - (face.getStepZ() * 0.5);
+
+                if (face.getAxis() == Direction.Axis.Y) {
+                    y = pos.getY() + 0.5 - (face.getStepY() * 0.5);
+                }
+
+                roulette.setPos(x, y, z);
                 roulette.setYRot(player.getYRot());
                 roulette.setOwner(player);
                 level.addFreshEntity(roulette);
