@@ -60,5 +60,7 @@
   "chat.betterroulette.action.click_to_stop": "Click to stop the roulette!",
   "chat.betterroulette.result": "&a▶ &fRoulette Result: &6&l%s",
   "chat.betterroulette.prize_get": "Prize: ",
-  "chat.betterroulette.jackpot": "&6&l★ JACKPOT! ★"
+  "chat.betterroulette.jackpot": "&6&l★ JACKPOT! ★",
+  "chat.betterroulette.result.title": "%s Result",
+  "chat.betterroulette.result.won": "%s&r Won!"
 }

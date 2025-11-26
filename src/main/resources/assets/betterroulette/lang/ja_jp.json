@@ -60,5 +60,7 @@
   "chat.betterroulette.action.click_to_stop": "クリックしてルーレットを停止！",
   "chat.betterroulette.result": "&a▶ &fルーレット結果: &6&l%s",
   "chat.betterroulette.prize_get": "獲得景品: ",
-  "chat.betterroulette.jackpot": "&6&l★ 大当たり! ★"
+  "chat.betterroulette.jackpot": "&6&l★ 大当たり! ★",
+  "chat.betterroulette.result.title": "%sの結果",
+  "chat.betterroulette.result.won": "%s&rが当たりました！"
 }

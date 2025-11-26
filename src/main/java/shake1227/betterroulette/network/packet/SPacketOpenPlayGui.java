@@ -1,12 +1,10 @@
 package shake1227.betterroulette.network.packet;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
-import shake1227.betterroulette.client.screen.RoulettePlayScreen;
 import shake1227.betterroulette.common.entity.RouletteEntity;
 
 import java.util.function.Supplier;
@@ -34,7 +32,7 @@ public class SPacketOpenPlayGui {
         NetworkEvent.Context ctx = supplier.get();
         ctx.enqueueWork(() -> {
             DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-                Minecraft.getInstance().setScreen(new RoulettePlayScreen(entityId, nbt));
+                shake1227.betterroulette.client.ClientPacketHandler.handleOpenPlayGui(entityId, nbt);
             });
         });
         return true;

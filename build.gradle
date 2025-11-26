@@ -61,6 +61,7 @@ repositories {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    implementation project(':ModernNotification')
 
     // Provides Bukkit/Spigot classes needed by Vault. Marked as non-transitive.
     compileOnly(fg.deobf('io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT')) {

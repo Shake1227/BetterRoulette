@@ -21,13 +21,15 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.fml.ModList;
+import shake1227.betterroulette.client.renderer.util.ChatUtil;
 import shake1227.betterroulette.common.data.RouletteEntry;
+import shake1227.betterroulette.compats.ModernNotificationProxy;
 import shake1227.betterroulette.compats.VaultProxy;
 import shake1227.betterroulette.core.config.ModConfig;
 import shake1227.betterroulette.network.ModPackets;
 import shake1227.betterroulette.network.packet.SPacketOpenGui;
 import shake1227.betterroulette.network.packet.SPacketOpenPlayGui;
-import shake1227.betterroulette.client.renderer.util.ChatUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -269,17 +271,29 @@ public class RouletteEntity extends Entity {
             }
 
             if (currentState != State.IDLE) {
-                serverPlayer.sendSystemMessage(ChatUtil.parse(Component.translatable("chat.betterroulette.play.already_spinning").getString()));
+                if (ModList.get().isLoaded("modernnotification")) {
+                    ModernNotificationProxy.sendError(serverPlayer, "chat.betterroulette.play.already_spinning");
+                } else {
+                    serverPlayer.sendSystemMessage(ChatUtil.parse(Component.translatable("chat.betterroulette.play.already_spinning").getString()));
+                }
                 return InteractionResult.SUCCESS;
             }
 
             if (isPlayerPlayingOtherRoulette(serverPlayer)) {
-                serverPlayer.sendSystemMessage(Component.literal("§cYou are already playing another roulette!"));
+                if (ModList.get().isLoaded("modernnotification")) {
+                    ModernNotificationProxy.sendError(serverPlayer, "You are already playing another roulette!");
+                } else {
+                    serverPlayer.sendSystemMessage(Component.literal("§cYou are already playing another roulette!"));
+                }
                 return InteractionResult.SUCCESS;
             }
 
             if (serverSideEntries.isEmpty()) {
-                serverPlayer.sendSystemMessage(ChatUtil.parse(Component.translatable("chat.betterroulette.play.no_entries").getString()));
+                if (ModList.get().isLoaded("modernnotification")) {
+                    ModernNotificationProxy.sendError(serverPlayer, "chat.betterroulette.play.no_entries");
+                } else {
+                    serverPlayer.sendSystemMessage(ChatUtil.parse(Component.translatable("chat.betterroulette.play.no_entries").getString()));
+                }
                 return InteractionResult.SUCCESS;
             }
             ModPackets.sendToPlayer(serverPlayer, new SPacketOpenPlayGui(this));
@@ -315,13 +329,21 @@ public class RouletteEntity extends Entity {
 
         if (useVault && VaultProxy.isVaultLoaded && cost > 0) {
             if (!VaultProxy.withdraw(player, this.cost)) {
-                player.sendSystemMessage(ChatUtil.parse(Component.translatable("chat.betterroulette.play.no_cost").getString()));
+                if (ModList.get().isLoaded("modernnotification")) {
+                    ModernNotificationProxy.sendError(player, "chat.betterroulette.play.no_cost");
+                } else {
+                    player.sendSystemMessage(ChatUtil.parse(Component.translatable("chat.betterroulette.play.no_cost").getString()));
+                }
                 return;
             }
         }
         if (useItemCost && !costItem.isEmpty()) {
             if (!hasEnoughItems(player, costItem)) {
-                player.sendSystemMessage(Component.literal("You don't have enough items to play!"));
+                if (ModList.get().isLoaded("modernnotification")) {
+                    ModernNotificationProxy.sendError(player, "You don't have enough items to play!");
+                } else {
+                    player.sendSystemMessage(Component.literal("You don't have enough items to play!"));
+                }
                 return;
             }
             consumeItems(player, costItem);
@@ -420,7 +442,7 @@ public class RouletteEntity extends Entity {
 
         } else {
             float accumulatedWeight = 0;
-            for(int i = 0; i < index; i++) {
+            for (int i = 0; i < index; i++) {
                 accumulatedWeight += serverSideEntries.get(i).getWeight();
             }
             float startAngle = (accumulatedWeight / totalWeight) * 360.0f;
@@ -439,7 +461,7 @@ public class RouletteEntity extends Entity {
         if (finalTarget < currentRotation) finalTarget += 360;
 
         if (coastingValue > 0) {
-            finalTarget += 360 * (1 + (int)coastingValue);
+            finalTarget += 360 * (1 + (int) coastingValue);
         }
 
         this.targetRotation = finalTarget;
@@ -451,7 +473,7 @@ public class RouletteEntity extends Entity {
         if (level().isClientSide) return;
 
         if (currentState == State.SPINNING && !isAutoStop && currentPlayerUUID != null) {
-            Player p = ((ServerLevel)level()).getServer().getPlayerList().getPlayer(currentPlayerUUID);
+            Player p = ((ServerLevel) level()).getServer().getPlayerList().getPlayer(currentPlayerUUID);
             if (p != null) {
                 p.displayClientMessage(Component.translatable("chat.betterroulette.action.click_to_stop"), true);
             }
@@ -512,7 +534,7 @@ public class RouletteEntity extends Entity {
 
     private void onSpinEnd() {
         if (currentPlayerUUID != null) {
-            Player p = ((ServerLevel)level()).getServer().getPlayerList().getPlayer(currentPlayerUUID);
+            Player p = ((ServerLevel) level()).getServer().getPlayerList().getPlayer(currentPlayerUUID);
             if (p != null) {
                 p.removeTag("betterroulette:playing_" + this.getId());
             }
@@ -522,17 +544,29 @@ public class RouletteEntity extends Entity {
 
         RouletteEntry winner = serverSideEntries.get(winningEntryIndex);
         ServerLevel serverLevel = (ServerLevel) this.level();
-        Component resultMsg = ChatUtil.parse(Component.translatable("chat.betterroulette.result", winner.getName()).getString());
-        serverLevel.getPlayers(p -> p.distanceToSqr(this) < 256).forEach(p -> p.sendSystemMessage(resultMsg));
 
-        if (winner.getDesc() != null && !winner.getDesc().isEmpty()) {
-            MutableComponent descMsg = Component.translatable("chat.betterroulette.prize_get")
-                    .withStyle(ChatFormatting.YELLOW)
-                    .append(Component.literal(winner.getDesc()).withStyle(ChatFormatting.WHITE));
+        if (ModList.get().isLoaded("modernnotification")) {
+            serverLevel.getPlayers(p -> p.distanceToSqr(this) < 256).forEach(p -> {
+                ModernNotificationProxy.sendResult(
+                        p,
+                        this.entityData.get(ROULETTE_NAME),
+                        ChatUtil.parse(winner.getName()),
+                        winner.getDesc()
+                );
+            });
+        } else {
+            Component resultMsg = ChatUtil.parse(Component.translatable("chat.betterroulette.result", winner.getName()).getString());
+            serverLevel.getPlayers(p -> p.distanceToSqr(this) < 256).forEach(p -> p.sendSystemMessage(resultMsg));
 
-            if (currentPlayerUUID != null) {
-                Player p = serverLevel.getPlayerByUUID(currentPlayerUUID);
-                if (p != null) p.sendSystemMessage(descMsg);
+            if (winner.getDesc() != null && !winner.getDesc().isEmpty()) {
+                MutableComponent descMsg = Component.translatable("chat.betterroulette.prize_get")
+                        .withStyle(ChatFormatting.YELLOW)
+                        .append(Component.literal(winner.getDesc()).withStyle(ChatFormatting.WHITE));
+
+                if (currentPlayerUUID != null) {
+                    Player p = serverLevel.getPlayerByUUID(currentPlayerUUID);
+                    if (p != null) p.sendSystemMessage(descMsg);
+                }
             }
         }
 
@@ -579,16 +613,30 @@ public class RouletteEntity extends Entity {
     public void onRemovedFromWorld() {
         super.onRemovedFromWorld();
         if (currentPlayerUUID != null && !level().isClientSide) {
-            Player p = ((ServerLevel)level()).getServer().getPlayerList().getPlayer(currentPlayerUUID);
+            Player p = ((ServerLevel) level()).getServer().getPlayerList().getPlayer(currentPlayerUUID);
             if (p != null) {
                 p.removeTag("betterroulette:playing_" + this.getId());
             }
         }
     }
 
-    public boolean isMixMode() { return isMixMode; }
-    public void setOwner(Player player) { this.ownerUUID = player.getUUID(); }
-    public UUID getOwnerId() { return this.ownerUUID; }
-    public boolean isOwnerOrOp(Player player) { return player.getUUID().equals(ownerUUID) || player.hasPermissions(2); }
-    public float getRenderRotation() { return this.entityData.get(RENDER_ROTATION); }
+    public boolean isMixMode() {
+        return isMixMode;
+    }
+
+    public void setOwner(Player player) {
+        this.ownerUUID = player.getUUID();
+    }
+
+    public UUID getOwnerId() {
+        return this.ownerUUID;
+    }
+
+    public boolean isOwnerOrOp(Player player) {
+        return player.getUUID().equals(ownerUUID) || player.hasPermissions(2);
+    }
+
+    public float getRenderRotation() {
+        return this.entityData.get(RENDER_ROTATION);
+    }
 }

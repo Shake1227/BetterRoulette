@@ -19,7 +19,7 @@ public class ModPackets {
 
     public static void register() {
         SimpleChannel net = NetworkRegistry.ChannelBuilder
-                .named(ResourceLocation.fromNamespaceAndPath(BetterRoulette.MOD_ID, "messages"))
+                .named(new ResourceLocation(BetterRoulette.MOD_ID, "messages"))
                 .networkProtocolVersion(() -> "1.0")
                 .clientAcceptedVersions(s -> true)
                 .serverAcceptedVersions(s -> true)

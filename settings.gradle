@@ -13,3 +13,5 @@ plugins {
 }
 
 rootProject.name = 'betterroulette'
+include ':ModernNotification'
+project(':ModernNotification').projectDir = new File('../ModernNotification')
