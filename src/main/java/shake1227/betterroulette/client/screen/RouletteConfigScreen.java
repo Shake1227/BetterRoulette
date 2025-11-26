@@ -531,7 +531,6 @@ public class RouletteConfigScreen extends Screen {
         } catch (NumberFormatException e) {
             this.nbt.putInt("Cost", 0);
         }
-        // ScaledBooleanButton#getValue() が最新の値を返すことを利用してNBT更新
         this.nbt.putBoolean("UseVault", this.useVaultButton.getValue());
         this.nbt.putBoolean("UseItemCost", this.useItemCostButton.getValue());
         this.nbt.put("CostItem", this.pendingCostItem.save(new CompoundTag()));
@@ -560,8 +559,6 @@ public class RouletteConfigScreen extends Screen {
         super.onClose();
     }
 
-    // --- Inner Classes ---
-
     private class ScaledBooleanButton extends Button {
         private final Component prefix;
         private final Component onText;
@@ -570,7 +567,6 @@ public class RouletteConfigScreen extends Screen {
         private final Consumer<Boolean> onToggle;
 
         public ScaledBooleanButton(int x, int y, int width, int height, Component prefix, Component onText, Component offText, boolean initialValue, Consumer<Boolean> onToggle) {
-            // super.onPressに空の処理を渡すことで、ボタン自体のクリック動作をカスタマイズ可能にする
             super(x, y, width, height, Component.empty(), b -> {}, DEFAULT_NARRATION);
             this.prefix = prefix;
             this.onText = onText;
@@ -582,10 +578,10 @@ public class RouletteConfigScreen extends Screen {
 
         @Override
         public void onPress() {
-            this.value = !this.value; // 値をトグル
+            this.value = !this.value;
             this.updateMessage();
             this.onToggle.accept(this.value);
-            this.playDownSound(Minecraft.getInstance().getSoundManager()); // クリック音を再生
+            this.playDownSound(Minecraft.getInstance().getSoundManager());
         }
 
         private void updateMessage() {
@@ -607,8 +603,6 @@ public class RouletteConfigScreen extends Screen {
             Component message = this.getMessage();
             int textWidth = font.width(message);
             int availableWidth = this.width - 6;
-
-            // テキストがボタンの幅に収まらない場合、自動的に縮小して表示
             if (textWidth > availableWidth) {
                 float scale = (float) availableWidth / textWidth;
                 int cx = this.getX() + this.width / 2;

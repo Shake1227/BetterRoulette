@@ -27,7 +27,6 @@ public class ModPackets {
 
         INSTANCE = net;
 
-        // 既存
         net.messageBuilder(SPacketOpenGui.class, id(), NetworkDirection.PLAY_TO_CLIENT)
                 .decoder(SPacketOpenGui::new)
                 .encoder(SPacketOpenGui::toBytes)
@@ -46,14 +45,12 @@ public class ModPackets {
                 .consumerMainThread(CPacketDeleteRoulette::handle)
                 .add();
 
-        // 【新規】プレイ画面を開くパケット
         net.messageBuilder(SPacketOpenPlayGui.class, id(), NetworkDirection.PLAY_TO_CLIENT)
                 .decoder(SPacketOpenPlayGui::new)
                 .encoder(SPacketOpenPlayGui::toBytes)
                 .consumerMainThread(SPacketOpenPlayGui::handle)
                 .add();
 
-        // 【新規】プレイ開始パケット
         net.messageBuilder(CPacketPlayRoulette.class, id(), NetworkDirection.PLAY_TO_SERVER)
                 .decoder(CPacketPlayRoulette::new)
                 .encoder(CPacketPlayRoulette::toBytes)

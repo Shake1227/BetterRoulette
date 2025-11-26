@@ -239,7 +239,6 @@ public class RoulettePlayScreen extends Screen {
             @Override
             public void render(GuiGraphics guiGraphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isHovering, float partialTicks) {
                 if (isHovering) {
-                    // ハイライト（白半透明）
                     guiGraphics.fill(left, top, left + width, top + height, 0x80FFFFFF);
                 }
 
@@ -249,8 +248,6 @@ public class RoulettePlayScreen extends Screen {
 
                 guiGraphics.fill(boxLeft, boxTop, boxLeft + colorBoxSize, boxTop + colorBoxSize, 0xFF000000 | entry.getColor());
                 guiGraphics.renderOutline(boxLeft, boxTop, colorBoxSize, colorBoxSize, 0xFFFFFFFF);
-
-                // 名前をChatUtil.parseで描画
                 guiGraphics.drawString(Minecraft.getInstance().font, ChatUtil.parse(entry.getName()), boxLeft + colorBoxSize + 8, top + (height - 8) / 2, 0xFFFFFF);
 
                 String weight = "(" + entry.getWeight() + ")";

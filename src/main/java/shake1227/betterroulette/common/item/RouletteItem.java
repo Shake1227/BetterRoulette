@@ -26,7 +26,6 @@ public class RouletteItem extends Item {
 
             RouletteEntity roulette = EntityInit.ROULETTE.get().create(level);
             if (roulette != null) {
-                // 座標調整: 0.5のオフセットを与えることで、クリックしたブロックの表面にぴったり配置
                 double x = pos.getX() + 0.5 - (face.getStepX() * 0.5);
                 double y = pos.getY();
                 double z = pos.getZ() + 0.5 - (face.getStepZ() * 0.5);

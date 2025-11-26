@@ -13,8 +13,6 @@ import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 
 public class RenderUtil {
-
-    // 円盤描画 (中央のハブ用など)
     public static void drawDisk(PoseStack poseStack, VertexConsumer buffer, float radius, int segments, int color, int packedLight, int packedOverlay, float zOffset) {
         Matrix4f matrix = poseStack.last().pose();
         float y = zOffset;
@@ -37,16 +35,12 @@ public class RenderUtil {
             float z1 = radius * Mth.sin(rad1);
             float x2 = radius * Mth.cos(rad2);
             float z2 = radius * Mth.sin(rad2);
-
-            // 4頂点で閉じる (Quad対応)
             buffer.vertex(matrix, 0, y, 0).color(r, g, b, a).uv(0.5f, 0.5f).overlayCoords(packedOverlay).uv2(packedLight).normal(0, 1, 0).endVertex();
             buffer.vertex(matrix, x1, y, z1).color(r, g, b, a).uv(0.5f, 0.5f).overlayCoords(packedOverlay).uv2(packedLight).normal(0, 1, 0).endVertex();
             buffer.vertex(matrix, x2, y, z2).color(r, g, b, a).uv(0.5f, 0.5f).overlayCoords(packedOverlay).uv2(packedLight).normal(0, 1, 0).endVertex();
             buffer.vertex(matrix, x2, y, z2).color(r, g, b, a).uv(0.5f, 0.5f).overlayCoords(packedOverlay).uv2(packedLight).normal(0, 1, 0).endVertex();
         }
     }
-
-    // リング（枠線）描画
     public static void drawRing(PoseStack poseStack, VertexConsumer buffer, float innerRadius, float outerRadius, int segments, int color, int packedLight, int packedOverlay, float zOffset) {
         Matrix4f matrix = poseStack.last().pose();
         float y = zOffset;
@@ -80,8 +74,6 @@ public class RenderUtil {
             buffer.vertex(matrix, x2_in, y, z2_in).color(r, g, b, a).uv(0.5f, 0.5f).overlayCoords(packedOverlay).uv2(packedLight).normal(0, 1, 0).endVertex();
         }
     }
-
-    // 三角形描画（ポインター用）
     public static void drawTriangle(PoseStack poseStack, VertexConsumer buffer, float x, float z, float size, int color, int packedLight, int packedOverlay, float zOffset) {
         Matrix4f matrix = poseStack.last().pose();
         float y = zOffset;
@@ -101,14 +93,10 @@ public class RenderUtil {
         buffer.vertex(matrix, x3, y, z3).color(r, g, b, a).uv(0.5f, 0.5f).overlayCoords(packedOverlay).uv2(packedLight).normal(0, 1, 0).endVertex();
         buffer.vertex(matrix, x3, y, z3).color(r, g, b, a).uv(0.5f, 0.5f).overlayCoords(packedOverlay).uv2(packedLight).normal(0, 1, 0).endVertex();
     }
-
-    // GUI用: 色相環（カラーホイール）を描画
     public static void drawColorWheel(GuiGraphics guiGraphics, int x, int y, float radius) {
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();
         poseStack.translate(x, y, 0);
-
-        // 【修正】マトリックスを取得して頂点座標に適用する
         Matrix4f matrix = poseStack.last().pose();
 
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
@@ -118,8 +106,6 @@ public class RenderUtil {
         BufferBuilder buffer = tesselator.getBuilder();
 
         buffer.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-
-        // 中心点
         buffer.vertex(matrix, 0, 0, 0).color(255, 255, 255, 255).endVertex();
 
         int segments = 60;
@@ -134,8 +120,6 @@ public class RenderUtil {
             int r = (color >> 16) & 0xFF;
             int g = (color >> 8) & 0xFF;
             int b = color & 0xFF;
-
-            // 【修正】頂点にmatrixを渡す
             buffer.vertex(matrix, px, py, 0).color(r, g, b, 255).endVertex();
         }
 

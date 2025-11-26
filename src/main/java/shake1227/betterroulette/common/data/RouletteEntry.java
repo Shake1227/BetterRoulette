@@ -23,8 +23,6 @@ public class RouletteEntry {
         this.isJackpot = isJackpot;
         this.weight = weight;
     }
-
-    // 互換用
     public RouletteEntry(String name, int color, List<String> commands, boolean isJackpot, int weight) {
         this(name, "", color, commands, isJackpot, weight);
     }

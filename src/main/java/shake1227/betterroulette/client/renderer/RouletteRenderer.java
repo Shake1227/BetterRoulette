@@ -48,7 +48,6 @@ public class RouletteRenderer extends EntityRenderer<RouletteEntity> {
 
         if (!entries.isEmpty()) {
             if (entity.isMixMode()) {
-                // Mixモード: 100分割されたスロットを描画
                 List<Integer> mixIndices = entity.getMixModeIndices();
                 float anglePerSlot = 360.0f / mixIndices.size();
 
@@ -65,13 +64,10 @@ public class RouletteRenderer extends EntityRenderer<RouletteEntity> {
                         float endAngle = (i + 1) * anglePerSlot;
 
                         drawSector(poseStack, solidBuffer, radius, startAngle, endAngle, r, g, b, packedLight);
-
-                        // 【追加】境界線（各セルの開始位置に黒い線を引く）
                         drawRadialBorder(poseStack, solidBuffer, radius, startAngle, packedLight);
                     }
                 }
             } else {
-                // 通常モード
                 int totalWeight = entries.stream().mapToInt(RouletteEntry::getWeight).sum();
                 if (totalWeight <= 0) totalWeight = 1;
 
@@ -95,19 +91,13 @@ public class RouletteRenderer extends EntityRenderer<RouletteEntity> {
         } else {
             RenderUtil.drawDisk(poseStack, solidBuffer, radius, 64, 0xCCCCCC, packedLight, OverlayTexture.NO_OVERLAY, 0);
         }
-
-        // 外枠リング
         float ringWidth = 0.05f;
         RenderUtil.drawRing(poseStack, solidBuffer, radius, radius + ringWidth, 64, 0x000000, packedLight, OverlayTexture.NO_OVERLAY, -0.005f);
 
         poseStack.popPose();
-
-        // ハブ
         float hubY = -0.01f;
         RenderUtil.drawDisk(poseStack, solidBuffer, 0.25f, 32, 0x000000, packedLight, OverlayTexture.NO_OVERLAY, hubY);
         RenderUtil.drawDisk(poseStack, solidBuffer, 0.22f, 32, 0xFFFFFF, packedLight, OverlayTexture.NO_OVERLAY, hubY - 0.001f);
-
-        // ポインター
         poseStack.pushPose();
         float pointerZOffset = -0.05f;
         float pointerPosY = -1.05f - ringWidth;
@@ -129,34 +119,23 @@ public class RouletteRenderer extends EntityRenderer<RouletteEntity> {
         float z2 = radius * Mth.sin(rad2);
 
         org.joml.Matrix4f matrix = poseStack.last().pose();
-
-        // 4頂点で閉じる
         buffer.vertex(matrix, 0, 0, 0).color(r, g, b, 1.0f).uv(0.5f, 0.5f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
         buffer.vertex(matrix, x1, 0, z1).color(r, g, b, 1.0f).uv(0.5f, 0.5f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
         buffer.vertex(matrix, x2, 0, z2).color(r, g, b, 1.0f).uv(0.5f, 0.5f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
         buffer.vertex(matrix, x2, 0, z2).color(r, g, b, 1.0f).uv(0.5f, 0.5f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
     }
 
-    // 境界線（放射状の線）を描画するメソッド
     private void drawRadialBorder(PoseStack poseStack, VertexConsumer buffer, float radius, float angleDeg, int packedLight) {
         float rad = (float) Math.toRadians(angleDeg);
-        float lineWidth = 0.008f; // 線の太さ
-
-        // 半径方向のベクトル (cos, sin)
+        float lineWidth = 0.008f;
         float dx = Mth.cos(rad);
         float dz = Mth.sin(rad);
-
-        // 法線ベクトル (-sin, cos)
         float nx = -dz;
         float nz = dx;
-
-        // 中心点付近 (細く始める)
         float cX1 = nx * (lineWidth * 0.5f);
         float cZ1 = nz * (lineWidth * 0.5f);
         float cX2 = -nx * (lineWidth * 0.5f);
         float cZ2 = -nz * (lineWidth * 0.5f);
-
-        // 外周点 (半径Rの位置)
         float edgeX = radius * dx;
         float edgeZ = radius * dz;
 
@@ -166,10 +145,7 @@ public class RouletteRenderer extends EntityRenderer<RouletteEntity> {
         float eZ2 = edgeZ - (nz * lineWidth * 0.5f);
 
         org.joml.Matrix4f matrix = poseStack.last().pose();
-        // 少し浮かせて描画 (-0.001f)
         float y = -0.001f;
-
-        // 黒い長方形を描画
         buffer.vertex(matrix, cX1, y, cZ1).color(0, 0, 0, 255).uv(0.5f, 0.5f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
         buffer.vertex(matrix, eX1, y, eZ1).color(0, 0, 0, 255).uv(0.5f, 0.5f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();
         buffer.vertex(matrix, eX2, y, eZ2).color(0, 0, 0, 255).uv(0.5f, 0.5f).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(0, 1, 0).endVertex();

@@ -522,9 +522,6 @@ public class RouletteEntity extends Entity {
 
         RouletteEntry winner = serverSideEntries.get(winningEntryIndex);
         ServerLevel serverLevel = (ServerLevel) this.level();
-
-        // ここで ChatUtil.parse を通すことで、当選者の名前(winner.getName())に含まれる
-        // カラーコードもチャットメッセージに反映されます。
         Component resultMsg = ChatUtil.parse(Component.translatable("chat.betterroulette.result", winner.getName()).getString());
         serverLevel.getPlayers(p -> p.distanceToSqr(this) < 256).forEach(p -> p.sendSystemMessage(resultMsg));
 
@@ -565,8 +562,6 @@ public class RouletteEntity extends Entity {
                     ));
                 }
             }
-
-            // ジャックポット時の全体チャットは削除済み
 
             String jackpotCmd = ModConfig.SERVER.jackpotCommand.get();
             if (jackpotCmd != null && !jackpotCmd.isBlank()) {

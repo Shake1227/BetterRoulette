@@ -69,8 +69,6 @@ public class RouletteEntryList extends ObjectSelectionList<RouletteEntryList.Ent
 
             guiGraphics.fill(left + 2, top + 2, left + 18, top + height - 2, 0xFF000000 | this.rouletteEntry.getColor());
             guiGraphics.renderOutline(left + 2, top + 2, 16, height - 4, 0xFF000000);
-
-            // 名前をChatUtil.parseで描画してカラーコードを適用
             guiGraphics.drawString(minecraft.font, ChatUtil.parse(this.rouletteEntry.getName()), left + 24, top + (height - minecraft.font.lineHeight) / 2, 0xFFFFFF);
         }
 
