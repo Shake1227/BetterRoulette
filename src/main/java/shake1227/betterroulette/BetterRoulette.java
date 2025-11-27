@@ -16,7 +16,7 @@ import shake1227.betterroulette.core.setup.ModSetup;
 @Mod(BetterRoulette.MOD_ID)
 public class BetterRoulette {
     public static final String MOD_ID = "betterroulette";
-    private static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogUtils.getLogger();
 
     public BetterRoulette() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();

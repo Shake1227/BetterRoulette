@@ -1,9 +1,13 @@
 package shake1227.betterroulette.compats;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.PacketDistributor;
+import shake1227.betterroulette.client.renderer.util.ChatUtil;
 import shake1227.modernnotification.config.ServerConfig;
 import shake1227.modernnotification.core.NotificationCategory;
 import shake1227.modernnotification.core.NotificationType;
@@ -14,8 +18,6 @@ import shake1227.modernnotification.util.TextFormattingUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ModernNotificationProxy {
     private static final String MOD_ID = "modernnotification";
@@ -43,15 +45,33 @@ public class ModernNotificationProxy {
         } catch (Throwable ignored) {}
     }
 
-    public static void sendResult(ServerPlayer player, Component rouletteName, Component prizeName, String prizeDesc) {
+    public static void sendStartMessage(ServerPlayer player, Component message) {
         if (!isLoaded) return;
         try {
-            List<Component> title = Collections.singletonList(
-                    Component.translatable("chat.betterroulette.result.title", rouletteName)
+            sendNotification(
+                    player,
+                    NotificationType.LEFT,
+                    NotificationCategory.SUCCESS,
+                    null,
+                    Collections.singletonList(message),
+                    -1
             );
+        } catch (Throwable ignored) {}
+    }
+
+    public static void sendResult(ServerPlayer player, String rawRouletteName, String rawPrizeName, String prizeDesc) {
+        if (!isLoaded) return;
+        try {
+            Component rNameComp = ChatUtil.parse(rawRouletteName);
+            MutableComponent titleComp = Component.translatable("chat.betterroulette.result.title", rNameComp)
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.WHITE).withBold(true));
+
+            List<Component> title = Collections.singletonList(titleComp);
 
             List<Component> message = new ArrayList<>();
-            message.add(Component.translatable("chat.betterroulette.result.won", prizeName));
+
+            Component pNameComp = ChatUtil.parse(rawPrizeName);
+            message.add(Component.translatable("chat.betterroulette.result.won", pNameComp));
 
             if (prizeDesc != null && !prizeDesc.isEmpty()) {
                 String formattedDesc = insertLineBreaks(prizeDesc);
@@ -65,7 +85,7 @@ public class ModernNotificationProxy {
                     NotificationCategory.SUCCESS,
                     title,
                     message,
-                    -1
+                    6
             );
         } catch (Throwable ignored) {}
     }
@@ -81,7 +101,6 @@ public class ModernNotificationProxy {
         );
         PacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), packet);
     }
-
     private static String insertLineBreaks(String text) {
         if (text == null || text.length() <= 25) return text;
 

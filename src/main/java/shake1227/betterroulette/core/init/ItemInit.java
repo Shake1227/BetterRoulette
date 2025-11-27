@@ -1,6 +1,8 @@
 package shake1227.betterroulette.core.init;
 
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -17,5 +19,12 @@ public class ItemInit {
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
+        eventBus.addListener(ItemInit::addCreative);
+    }
+
+    private static void addCreative(BuildCreativeModeTabContentsEvent event) {
+        if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
+            event.accept(ROULETTE);
+        }
     }
 }

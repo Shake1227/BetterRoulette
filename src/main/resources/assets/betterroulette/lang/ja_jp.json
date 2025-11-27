@@ -53,14 +53,16 @@
 
   "chat.betterroulette.play.info": "ルーレット: %s",
   "chat.betterroulette.play.cost_vault": "コスト: %d円",
-  "chat.betterroulette.play.click": "&a&l[クリックしてプレイ]",
-  "chat.betterroulette.play.no_cost": "&cプレイするためのコストが足りません。",
-  "chat.betterroulette.play.no_entries": "&cこのルーレットには景品が設定されていません。",
-  "chat.betterroulette.play.already_spinning": "&cこのルーレットは既に回転中です！",
+  "chat.betterroulette.play.click": "\u00A7a\u00A7l[クリックしてプレイ]",
+  "chat.betterroulette.play.no_cost": "\u00A7cプレイするためのコストが足りません。",
+  "chat.betterroulette.play.no_entries": "\u00A7cこのルーレットには景品が設定されていません。",
+  "chat.betterroulette.play.already_spinning": "\u00A7cこのルーレットは既に回転中です！",
   "chat.betterroulette.action.click_to_stop": "クリックしてルーレットを停止！",
-  "chat.betterroulette.result": "&a▶ &fルーレット結果: &6&l%s",
+  "chat.betterroulette.result": "\u00A7a▶ \u00A7fルーレット結果: \u00A76\u00A7l%s",
   "chat.betterroulette.prize_get": "獲得景品: ",
-  "chat.betterroulette.jackpot": "&6&l★ 大当たり! ★",
-  "chat.betterroulette.result.title": "%sの結果",
-  "chat.betterroulette.result.won": "%s&rが当たりました！"
+  "chat.betterroulette.jackpot": "\u00A76\u00A7l★ 大当たり! ★",
+  "chat.betterroulette.result.title": "%s の結果",
+  "chat.betterroulette.result.won": "%sが当たりました！",
+  "chat.betterroulette.play.start.free": "ルーレットを回しました！",
+  "chat.betterroulette.play.start.cost": "%sを支払ってルーレットを回しました！"
 }

@@ -53,14 +53,16 @@
 
   "chat.betterroulette.play.info": "Roulette: %s",
   "chat.betterroulette.play.cost_vault": "Cost: %d",
-  "chat.betterroulette.play.click": "&a&l[Click to Play]",
-  "chat.betterroulette.play.no_cost": "&cYou do not have enough to play.",
-  "chat.betterroulette.play.no_entries": "&cNo prizes are configured for this roulette.",
-  "chat.betterroulette.play.already_spinning": "&cThis roulette is already spinning!",
+  "chat.betterroulette.play.click": "\u00A7a\u00A7l[Click to Play]",
+  "chat.betterroulette.play.no_cost": "\u00A7cYou do not have enough to play.",
+  "chat.betterroulette.play.no_entries": "\u00A7cNo prizes are configured for this roulette.",
+  "chat.betterroulette.play.already_spinning": "\u00A7cThis roulette is already spinning!",
   "chat.betterroulette.action.click_to_stop": "Click to stop the roulette!",
-  "chat.betterroulette.result": "&a▶ &fRoulette Result: &6&l%s",
+  "chat.betterroulette.result": "\u00A7a▶ \u00A7fRoulette Result: \u00A76\u00A7l%s",
   "chat.betterroulette.prize_get": "Prize: ",
-  "chat.betterroulette.jackpot": "&6&l★ JACKPOT! ★",
+  "chat.betterroulette.jackpot": "\u00A76\u00A7l★ JACKPOT! ★",
   "chat.betterroulette.result.title": "%s Result",
-  "chat.betterroulette.result.won": "%s&r Won!"
+  "chat.betterroulette.result.won": "%s Won!",
+  "chat.betterroulette.play.start.free": "Roulette started!",
+  "chat.betterroulette.play.start.cost": "Paid %s to start roulette!"
 }

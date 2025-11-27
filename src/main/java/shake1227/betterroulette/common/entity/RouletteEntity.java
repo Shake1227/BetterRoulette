@@ -327,7 +327,14 @@ public class RouletteEntity extends Entity {
         if (currentState != State.IDLE) return;
         if (isPlayerPlayingOtherRoulette(player)) return;
 
-        if (useVault && VaultProxy.isVaultLoaded && cost > 0) {
+        MutableComponent costString = Component.literal("");
+        boolean hasCost = false;
+
+        if (useVault && cost > 0) {
+            if (!VaultProxy.checkConnection()) {
+                player.sendSystemMessage(Component.literal("§cEconomy plugin not found or not loaded."));
+                return;
+            }
             if (!VaultProxy.withdraw(player, this.cost)) {
                 if (ModList.get().isLoaded("modernnotification")) {
                     ModernNotificationProxy.sendError(player, "chat.betterroulette.play.no_cost");
@@ -336,7 +343,10 @@ public class RouletteEntity extends Entity {
                 }
                 return;
             }
+            costString.append(String.valueOf(cost)).append(ModConfig.SERVER.currencyUnit.get());
+            hasCost = true;
         }
+
         if (useItemCost && !costItem.isEmpty()) {
             if (!hasEnoughItems(player, costItem)) {
                 if (ModList.get().isLoaded("modernnotification")) {
@@ -347,6 +357,26 @@ public class RouletteEntity extends Entity {
                 return;
             }
             consumeItems(player, costItem);
+
+            if (hasCost) costString.append(" + ");
+            costString.append(costItem.getHoverName()).append(" x").append(String.valueOf(costItem.getCount()));
+            hasCost = true;
+        }
+
+        if (hasCost) {
+            Component msg = Component.translatable("chat.betterroulette.play.start.cost", costString);
+            if (ModList.get().isLoaded("modernnotification")) {
+                ModernNotificationProxy.sendStartMessage(player, msg);
+            } else {
+                player.sendSystemMessage(msg);
+            }
+        } else {
+            Component msg = Component.translatable("chat.betterroulette.play.start.free");
+            if (ModList.get().isLoaded("modernnotification")) {
+                ModernNotificationProxy.sendStartMessage(player, msg);
+            } else {
+                player.sendSystemMessage(msg);
+            }
         }
 
         startSpin(player);
@@ -547,12 +577,10 @@ public class RouletteEntity extends Entity {
 
         if (ModList.get().isLoaded("modernnotification")) {
             serverLevel.getPlayers(p -> p.distanceToSqr(this) < 256).forEach(p -> {
-                ModernNotificationProxy.sendResult(
-                        p,
-                        this.entityData.get(ROULETTE_NAME),
-                        ChatUtil.parse(winner.getName()),
-                        winner.getDesc()
-                );
+                String rName = this.entityData.get(ROULETTE_NAME).getString();
+                String pName = winner.getName();
+                String pDesc = winner.getDesc();
+                ModernNotificationProxy.sendResult(p, rName, pName, pDesc);
             });
         } else {
             Component resultMsg = ChatUtil.parse(Component.translatable("chat.betterroulette.result", winner.getName()).getString());
